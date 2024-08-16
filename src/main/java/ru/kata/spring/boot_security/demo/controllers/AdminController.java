@@ -1,97 +1,85 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.kata.spring.boot_security.demo.exeption.UserNotFoundException;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.RoleService;
+import ru.kata.spring.boot_security.demo.service.AdditionalService;
 import ru.kata.spring.boot_security.demo.service.UserService;
+import ru.kata.spring.boot_security.demo.validators.UserValidator;
 
-import java.util.List;
+import javax.validation.Valid;
+import java.security.Principal;
+import java.util.logging.Logger;
 
 @Controller
-@RequestMapping("/admin")
+@RequestMapping("/users")
 public class AdminController {
-    private UserService userService;
-    private RoleService roleService;
+    private final UserService userService;
+    private final AdditionalService additionalService;
+    private final UserValidator userValidator;
 
-    public AdminController(UserService userService, RoleService roleService) {
+    private static final Logger logger = (Logger) LoggerFactory.getLogger(AdminController.class);
+
+    @Autowired
+    public AdminController(UserService userService,
+                           AdditionalService additionalService,
+                           UserValidator userValidator) {
         this.userService = userService;
-        this.roleService = roleService;
+        this.additionalService = additionalService;
+        this.userValidator = userValidator;
     }
 
-    @GetMapping()
-    public String getAllUsers(Model model) {
-        model.addAttribute("all_users", userService.getAllUsers());
-        return "admin/admin_home";
+    @GetMapping("/admin")
+    public String showAllUsers(Model model, Principal principal) {
+        logger.info("User viewing all users");
+        model.addAttribute("newUser", new User());
+        additionalService.createModelForView(model, principal);
+        model.addAttribute("activeTab", "usersTable");
+        return "adminPage";
     }
 
-    @GetMapping("/new")
-    public String showNewUserForm(Model model) {
-        model.addAttribute("user", new User());
-        model.addAttribute("allRoles", roleService.findAll());
-        return "admin/add_user";
-    }
-
-    @PostMapping()
-    public String addUser(@ModelAttribute("newUser") User newUser,
-                          @RequestParam("roles") List<String> roles) {
-        if (roles.contains("ROLE_USER")) {
-            newUser.setAll_roles(roleService.getRole("ROLE_USER"));
+    @PostMapping("/admin")
+    public String addUser(@ModelAttribute("newUser") @Valid User user, BindingResult bindingResult,
+                          Principal principal, Model model) {
+        logger.info("User adding new user");
+        userValidator.validate(user, bindingResult);
+        if (bindingResult.hasErrors()) {
+            additionalService.createModelForView(model, principal);
+            model.addAttribute("activeTab", "addUser");
+            return "adminPage";
         }
-        if (roles.contains("ROLE_ADMIN")) {
-            newUser.setAll_roles(roleService.getRole("ROLE_ADMIN"));
-        }
-        userService.saveUser(newUser);
-        return "redirect:/admin";
+        userService.saveUser(user);
+        return "redirect:/users/admin";
     }
 
-    @GetMapping("/{id}")
-    public String showUserById(@PathVariable("id") int id, Model model) {
-        try {
-            User user = userService.showUserById(id);
-            model.addAttribute("user", user);
-            return "admin/selected_user";
-        } catch (UserNotFoundException e) {
-            return "redirect:/error_page";
+    @PatchMapping("/admin")
+    public String updateUser(@ModelAttribute("userIter") @Valid User user,
+                             BindingResult bindingResult,
+                             Model model, Principal principal) {
+        logger.info("User updating user");
+        model.addAttribute("authUser", userService.findByUsername(principal.getName()));
+        if (bindingResult.hasErrors()) {
+            return "adminPage";
         }
+        userService.updateUser(user);
+        return "redirect:/users/admin";
     }
 
-    @GetMapping("/{id}/edit")
-    public String editUser(Model model, @PathVariable("id") int id) {
-        try {
-            model.addAttribute("user", userService.showUserById(id));
-            return "admin/edit_user";
-        } catch (UserNotFoundException e) {
-            return "redirect:/error_page";
-        }
+    @DeleteMapping("/admin")
+    public String deleteUser(Model model, @RequestParam("id") int id) {
+        logger.info("User deleting user");
+        model.addAttribute("user", userService.showUserById(id));
+        userService.deleteById(id);
+        return "redirect:/users/admin";
     }
-
-    @PostMapping("/{id}/update")
-    public String updateUser(@ModelAttribute("user") User user, @PathVariable("id") int id) {
-        try {
-            userService.updateUserById(id, user);
-            return "redirect:/admin";
-        } catch (UserNotFoundException e) {
-            return "redirect:/error_page";
-        }
-    }
-
-    @PostMapping("/{id}/delete")
-    public String deleteUser(@PathVariable("id") int id) {
-        try {
-            userService.removeUserById(id);
-            return "redirect:/admin";
-        } catch (UserNotFoundException e) {
-            return "redirect:/error_page";
-        }
-    }
-
-
 }

@@ -1,11 +1,9 @@
 package ru.kata.spring.boot_security.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.exeption.UserNotFoundException;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
@@ -13,7 +11,6 @@ import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -26,13 +23,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User findByUsername(String username) {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            return null;
-        }
-        return user;
+        return userRepository.findByUsername(username);
     }
-
 
     @Override
     @Transactional
@@ -42,40 +34,35 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public User showUserById(int id) {
-        User user = userRepository.getById(id);
-        if (user == null) {
-            throw new UserNotFoundException("Пользователь с ID " + id + " не найден.");
-        }
-        return user;
+        return userRepository.getById(id);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     @Override
     @Transactional
-    public void updateUserById(int id, User updatedUser) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден."));
-        existingUser.setUsername(updatedUser.getUsername());
-        existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setPassword(updatedUser.getPassword());
-
-        userRepository.save(existingUser);
+    public void updateUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
     }
 
     @Override
     @Transactional
     public void removeUserById(int id) {
-        try {
+        userRepository.deleteById(id);
+    }
+
+    @Transactional
+    @Override
+    public void deleteById(int id) {
+        if (userRepository.findById(id).isPresent()){
             userRepository.deleteById(id);
-        } catch (EmptyResultDataAccessException ex) {
-            throw new UserNotFoundException("Пользователь с ID " + id + " не найден.");
         }
     }
 }
