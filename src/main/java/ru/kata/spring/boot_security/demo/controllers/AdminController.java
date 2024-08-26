@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,7 +19,6 @@ import ru.kata.spring.boot_security.demo.validators.UserValidator;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.logging.Logger;
 
 @Controller
 @RequestMapping("/users")
@@ -27,8 +26,6 @@ public class AdminController {
     private final UserService userService;
     private final AdditionalService additionalService;
     private final UserValidator userValidator;
-
-    private static final Logger logger = (Logger) LoggerFactory.getLogger(AdminController.class);
 
     @Autowired
     public AdminController(UserService userService,
@@ -41,7 +38,6 @@ public class AdminController {
 
     @GetMapping("/admin")
     public String showAllUsers(Model model, Principal principal) {
-        logger.info("User viewing all users");
         model.addAttribute("newUser", new User());
         additionalService.createModelForView(model, principal);
         model.addAttribute("activeTab", "usersTable");
@@ -51,7 +47,6 @@ public class AdminController {
     @PostMapping("/admin")
     public String addUser(@ModelAttribute("newUser") @Valid User user, BindingResult bindingResult,
                           Principal principal, Model model) {
-        logger.info("User adding new user");
         userValidator.validate(user, bindingResult);
         if (bindingResult.hasErrors()) {
             additionalService.createModelForView(model, principal);
@@ -66,7 +61,6 @@ public class AdminController {
     public String updateUser(@ModelAttribute("userIter") @Valid User user,
                              BindingResult bindingResult,
                              Model model, Principal principal) {
-        logger.info("User updating user");
         model.addAttribute("authUser", userService.findByUsername(principal.getName()));
         if (bindingResult.hasErrors()) {
             return "adminPage";
@@ -77,9 +71,24 @@ public class AdminController {
 
     @DeleteMapping("/admin")
     public String deleteUser(Model model, @RequestParam("id") int id) {
-        logger.info("User deleting user");
         model.addAttribute("user", userService.showUserById(id));
         userService.deleteById(id);
         return "redirect:/users/admin";
+    }
+
+
+    @GetMapping("/edit/{id}")
+    public String showEditUserForm(@PathVariable("id") int id, Model model) {
+        User user = userService.showUserById(id);
+        model.addAttribute("userIter", user);
+        return "editUser";
+    }
+
+
+    @GetMapping("/delete/{id}")
+    public String confirmDeleteUser(@PathVariable("id") int id, Model model) {
+        User user = userService.showUserById(id);
+        model.addAttribute("user", user);
+        return "confirmDelete";
     }
 }

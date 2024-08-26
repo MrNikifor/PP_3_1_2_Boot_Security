@@ -1,6 +1,10 @@
 package ru.kata.spring.boot_security.demo.model;
 
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,17 +15,20 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
-import java.util.List;
+import javax.validation.constraints.Min;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private int id;
 
-    @Column(name = "username")
+    @Column(name = "username",unique = true)
     private String username;
 
     @Column(name = "email")
@@ -31,61 +38,58 @@ public class User {
     private String password;
 
     @Column(name = "age")
+    @Min(value = 12, message = "Возраст не должен быть менее 12")
     private int age;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_role_id",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private List<Role> all_roles;
+    private Set<Role> allRoles = new HashSet<>();
 
-    public User() {}
+    public User() {
+    }
 
-    public User(String username, String email, String password, List<Role> all_roles) {
+    public User(String username, String email, String password, int age, Set<Role> allRoles) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.all_roles = all_roles;
+        this.age = age;
+        this.allRoles = allRoles;
     }
 
     public int getId() {
         return id;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public List<Role> getAll_roles() {
-        return all_roles;
-    }
-
     public void setId(int id) {
         this.id = id;
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
     }
 
     public void setUsername(String username) {
         this.username = username;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
     public void setEmail(String email) {
         this.email = email;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    @Override
+    public String getPassword() {
+        return password;
     }
 
-    public void setAll_roles(List<Role> all_roles) {
-        this.all_roles = all_roles;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public int getAge() {
@@ -94,5 +98,42 @@ public class User {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public Set<Role> getAllRoles() {
+        return allRoles;
+    }
+
+    public void setAllRoles(Set<Role> allRoles) {
+        this.allRoles = allRoles;
+    }
+
+    public Set<Role> getAll_roles() {
+        return allRoles;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return allRoles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).toList();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }
