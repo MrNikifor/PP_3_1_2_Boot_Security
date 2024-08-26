@@ -41,25 +41,15 @@ public class Role implements GrantedAuthority {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public Set<User> getAllUsers() {
         return allUsers;
     }
 
-    public void setAllUsers(Set<User> allUsers) {
-        this.allUsers = allUsers;
-    }
 
     @Override
     public String toString() {
