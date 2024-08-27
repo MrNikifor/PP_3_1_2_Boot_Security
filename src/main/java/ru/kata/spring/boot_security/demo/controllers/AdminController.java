@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
+import org.hibernate.LazyInitializationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ru.kata.spring.boot_security.demo.exeption.UserNotFoundException;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.AdditionalService;
 import ru.kata.spring.boot_security.demo.service.UserService;
@@ -38,10 +40,16 @@ public class AdminController {
 
     @GetMapping("/admin")
     public String showAllUsers(Model model, Principal principal) {
-        model.addAttribute("newUser", new User());
-        additionalService.createModelForView(model, principal);
-        model.addAttribute("activeTab", "usersTable");
-        return "adminPage";
+        try {
+            model.addAttribute("newUser", new User());
+            additionalService.createModelForView(model, principal);
+            model.addAttribute("activeTab", "usersTable");
+            return "adminPage";
+        } catch (LazyInitializationException e) {
+            throw new UserNotFoundException("Ошибка загрузки данных пользователя: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Произошла непредвиденная ошибка: " + e.getMessage());
+        }
     }
 
     @PostMapping("/admin")
@@ -61,34 +69,60 @@ public class AdminController {
     public String updateUser(@ModelAttribute("userIter") @Valid User user,
                              BindingResult bindingResult,
                              Model model, Principal principal) {
-        model.addAttribute("authUser", userService.findByUsername(principal.getName()));
-        if (bindingResult.hasErrors()) {
-            return "adminPage";
+        try {
+            model.addAttribute("authUser", userService.findByUsername(principal.getName()));
+            if (bindingResult.hasErrors()) {
+                return "adminPage";
+            }
+            userService.updateUser(user);
+            return "redirect:/users/admin";
+        } catch (LazyInitializationException e) {
+            throw new UserNotFoundException("Ошибка загрузки данных пользователя: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Произошла непредвиденная ошибка: " + e.getMessage());
         }
-        userService.updateUser(user);
-        return "redirect:/users/admin";
     }
 
     @DeleteMapping("/admin")
     public String deleteUser(Model model, @RequestParam("id") int id) {
-        model.addAttribute("user", userService.showUserById(id));
-        userService.deleteById(id);
-        return "redirect:/users/admin";
+        try {
+            model.addAttribute("user", userService.showUserById(id));
+            userService.deleteById(id);
+            return "redirect:/users/admin";
+        } catch (UserNotFoundException e) {
+            throw new UserNotFoundException("Пользователь с ID " + id + " не найден: " + e.getMessage());
+        } catch (LazyInitializationException e) {
+            throw new UserNotFoundException("Ошибка загрузки данных пользователя: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Произошла непредвиденная ошибка: " + e.getMessage());
+        }
     }
 
 
     @GetMapping("/edit/{id}")
     public String showEditUserForm(@PathVariable("id") int id, Model model) {
-        User user = userService.showUserById(id);
-        model.addAttribute("userIter", user);
-        return "editUser";
+        try {
+            User user = userService.showUserById(id);
+            model.addAttribute("userIter", user);
+            return "editUser";
+        } catch (LazyInitializationException e) {
+            throw new UserNotFoundException("Ошибка загрузки данных пользователя: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Произошла непредвиденная ошибка: " + e.getMessage());
+        }
     }
 
 
     @GetMapping("/delete/{id}")
     public String confirmDeleteUser(@PathVariable("id") int id, Model model) {
-        User user = userService.showUserById(id);
-        model.addAttribute("user", user);
-        return "confirmDelete";
+        try {
+            User user = userService.showUserById(id);
+            model.addAttribute("user", user);
+            return "confirmDelete";
+        } catch (LazyInitializationException e) {
+            throw new UserNotFoundException("Ошибка загрузки данных пользователя: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Произошла непредвиденная ошибка: " + e.getMessage());
+        }
     }
 }

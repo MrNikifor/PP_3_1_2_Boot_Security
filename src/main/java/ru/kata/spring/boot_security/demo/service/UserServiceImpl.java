@@ -4,10 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.exeption.UserNotFoundException;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -21,9 +23,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+        return Optional.ofNullable(userRepository.findByUsername(username))
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с именем " + username + " не найден"));
     }
 
     @Override
@@ -34,13 +37,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public User showUserById(int id) {
-        return userRepository.getById(id);
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -56,7 +60,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void deleteById(int id) {
-        if (userRepository.findById(id).isPresent()){
+        if (userRepository.findById(id).isPresent()) {
             userRepository.deleteById(id);
         }
     }

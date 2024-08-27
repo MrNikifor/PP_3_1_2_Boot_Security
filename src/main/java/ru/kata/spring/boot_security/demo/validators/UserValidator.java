@@ -31,7 +31,7 @@ public class UserValidator implements Validator {
         Optional<User> optionalPerson = Optional.ofNullable(userService.findByUsername(user.getUsername()));
 
         if (optionalPerson.isPresent()) {
-            errors.rejectValue("username", "", "Человек с таким именем пользователя существует");
+            errors.rejectValue("username", "", "Пользователя с таким именем пользователя существует");
         }
     }
 }
