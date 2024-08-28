@@ -23,41 +23,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional
     public User findByUsername(String username) {
         return Optional.ofNullable(userRepository.findByUsername(username))
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с именем " + username + " не найден"));
     }
 
     @Override
-    @Transactional
     public void saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
     @Override
-    @Transactional
     public User showUserById(int id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
     }
 
     @Override
-    @Transactional
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     @Override
-    @Transactional
     public void updateUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
-
-    @Transactional
     @Override
     public void deleteById(int id) {
         if (userRepository.findById(id).isPresent()) {
