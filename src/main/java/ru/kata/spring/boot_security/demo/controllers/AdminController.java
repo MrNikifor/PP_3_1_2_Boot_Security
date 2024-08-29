@@ -1,13 +1,10 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.AdditionalService;
 import ru.kata.spring.boot_security.demo.service.UserService;
-import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
 import ru.kata.spring.boot_security.demo.validators.UserValidator;
 
 import javax.validation.Valid;
@@ -50,21 +46,21 @@ public class AdminController {
         return "editUser";
     }
 
-    @PostMapping("/admin/update") // Изменено на /admin/update
+    @PostMapping("/admin/update")
     public String updateUser(@ModelAttribute("userIter") @Valid User user,
                              BindingResult bindingResult,
                              Model model, Principal principal) {
         model.addAttribute("authUser", userService.findByUsername(principal.getName()));
 
         if (bindingResult.hasErrors()) {
-            return "adminPage"; // Вернуть на страницу админки в случае ошибок
+            return "adminPage";
         }
 
-        userService.updateUser(user); // Обновляем пользователя
-        return "redirect:/users/admin"; // Перенаправление на страницу админки после успешного обновления
+        userService.updateUser(user);
+        return "redirect:/users/admin";
     }
 
-    @PostMapping("/admin/add") // Изменено на /admin/add
+    @PostMapping("/admin/add")
     public String addUser(@ModelAttribute("newUser") @Valid User user, BindingResult bindingResult,
                           Principal principal, Model model) {
         userValidator.validate(user, bindingResult);
@@ -77,7 +73,7 @@ public class AdminController {
         return "redirect:/users/admin";
     }
 
-    @PostMapping("/admin/delete") // Изменено на /admin/delete
+    @PostMapping("/admin/delete")
     public String deleteUser(@RequestParam("id") int id) {
         if (id > 0) {
             userService.deleteById(id);
