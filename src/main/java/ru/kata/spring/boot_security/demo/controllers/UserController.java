@@ -30,6 +30,7 @@ public class UserController {
             throw new UserNotFoundException("Пользователь не найден.");
         }
         model.addAttribute("user", user);
-        return "userInfo";
+        return "userInfo"; // Убедитесь, что возвращаете правильное имя шаблона
     }
+
 }

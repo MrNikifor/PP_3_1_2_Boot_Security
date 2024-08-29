@@ -51,5 +51,4 @@ public class ConfigUserService implements UserDetailsService {
                         .collect(Collectors.toList())
         );
     }
-
 }

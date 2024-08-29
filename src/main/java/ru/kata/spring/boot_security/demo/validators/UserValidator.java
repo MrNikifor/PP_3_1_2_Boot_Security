@@ -28,10 +28,8 @@ public class UserValidator implements Validator {
     public void validate(Object o, Errors errors) {
         User user = (User) o;
 
-        Optional<User> optionalPerson = Optional.ofNullable(userService.findByUsername(user.getUsername()));
+        Optional<User> optionalUser = Optional.ofNullable(userService.findByUsername(user.getUsername()));
 
-        if (optionalPerson.isPresent()) {
-            errors.rejectValue("username", "", "Пользователя с таким именем пользователя существует");
-        }
+        optionalUser.ifPresent(existingUser -> errors.rejectValue("username", "", "Пользователь с таким именем уже существует"));
     }
 }
