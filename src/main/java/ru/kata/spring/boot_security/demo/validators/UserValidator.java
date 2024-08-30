@@ -5,19 +5,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.UserService;
+import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
 import java.util.Optional;
 
 @Component
 public class UserValidator implements Validator {
 
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UserValidator(UserService userService) {
-        this.userService = userService;
+    public UserValidator(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
+
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -28,8 +29,12 @@ public class UserValidator implements Validator {
     public void validate(Object o, Errors errors) {
         User user = (User) o;
 
-        Optional<User> optionalUser = Optional.ofNullable(userService.findByUsername(user.getUsername()));
+        Optional<User> optionalUser = Optional.ofNullable(userRepository.findByUsername(user.getUsername()));
 
-        optionalUser.ifPresent(existingUser -> errors.rejectValue("username", "", "Пользователь с таким именем уже существует"));
+        optionalUser.ifPresent(existingUser -> {
+            if (existingUser.getId() != user.getId()) {
+                errors.rejectValue("username", "", "Пользователь с таким именем уже существует");
+            }
+        });
     }
 }

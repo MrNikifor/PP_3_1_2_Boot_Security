@@ -9,23 +9,29 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.AdditionalService;
+import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 import ru.kata.spring.boot_security.demo.validators.UserValidator;
 
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.HashSet;
+import java.util.Set;
 
 @Controller
 @RequestMapping("/users")
 public class AdminController {
     private final UserService userService;
+    private final RoleService roleService;
     private final AdditionalService additionalService;
     private final UserValidator userValidator;
 
-    public AdminController(UserService userService, AdditionalService additionalService, UserValidator userValidator) {
+    public AdminController(UserService userService, RoleService roleService, AdditionalService additionalService, UserValidator userValidator) {
         this.userService = userService;
+        this.roleService = roleService;
         this.additionalService = additionalService;
         this.userValidator = userValidator;
     }
@@ -35,6 +41,7 @@ public class AdminController {
         model.addAttribute("newUser", new User());
         additionalService.createModelForView(model, principal);
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("roles", roleService.getAllRoles());
         model.addAttribute("activeTab", "usersTable");
         return "adminPage";
     }
@@ -43,17 +50,17 @@ public class AdminController {
     public String showEditUserForm(@PathVariable("id") int id, Model model) {
         User user = userService.showUserById(id);
         model.addAttribute("userIter", user);
+        model.addAttribute("roles", roleService.getAllRoles());
         return "editUser";
     }
 
     @PostMapping("/admin/update")
     public String updateUser(@ModelAttribute("userIter") @Valid User user,
                              BindingResult bindingResult,
-                             Model model, Principal principal) {
-        model.addAttribute("authUser", userService.findByUsername(principal.getName()));
-
+                             Model model) {
         if (bindingResult.hasErrors()) {
-            return "adminPage";
+            model.addAttribute("roles", roleService.getAllRoles());
+            return "editUser";
         }
 
         userService.updateUser(user);
@@ -64,11 +71,24 @@ public class AdminController {
     public String addUser(@ModelAttribute("newUser") @Valid User user, BindingResult bindingResult,
                           Principal principal, Model model) {
         userValidator.validate(user, bindingResult);
+
         if (bindingResult.hasErrors()) {
             additionalService.createModelForView(model, principal);
             model.addAttribute("activeTab", "addUser");
+            model.addAttribute("roles", roleService.getAllRoles());
             return "adminPage";
         }
+
+        if (user.getAllRoles() != null) {
+            Set<Role> validRoles = new HashSet<>();
+            for (Role role : user.getAllRoles()) {
+                if (roleService.roleExists(role.getId())) {
+                    validRoles.add(role);
+                }
+            }
+            user.setAllRoles(validRoles);
+        }
+
         userService.saveUser(user);
         return "redirect:/users/admin";
     }
@@ -80,20 +100,4 @@ public class AdminController {
         }
         return "redirect:/users/admin";
     }
-
-
-  /*
-
-
-
-
-
-
-
-    @GetMapping("/delete/{id}")
-    public String confirmDeleteUser(@PathVariable("id") int id, Model model) {
-        User user = userService.showUserById(id);
-        model.addAttribute("user", user);
-        return "confirmDelete";
-    }*/
 }

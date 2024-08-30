@@ -1,17 +1,65 @@
-<form action="#" th:action="@{/users/admin}" th:object="${userIter}" method="post">
-    <input type="hidden" th:field="*{id}" />
-    <div class="mb-3">
-        <label for="username" class="form-label">Имя пользователя</label>
-        <input type="text" class="form-control" id="username" th:field="*{username}" required>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css">
+    <title>Редактирование пользователя</title>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Админка</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Переключить навигацию">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/users/admin">Список пользователей</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/users/user">Профиль</a>
+                </li>
+            </ul>
+        </div>
     </div>
-    <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" th:field="*{email}" required>
-    </div>
-    <div class="mb-3">
-        <label for="age" class="form-label">Возраст</label>
-        <input type="number" class="form-control" id="age" th:field="*{age}" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-</form>
+</nav>
 
+<div class="container mt-4">
+    <h2>Редактировать пользователя</h2>
+    <form action="#" th:action="@{/users/admin/update}" th:object="${userIter}" method="post">
+        <input type="hidden" th:field="*{id}" />
+        <div class="mb-3">
+            <label for="username" class="form-label">Имя пользователя</label>
+            <input type="text" class="form-control" id="username" th:field="*{username}" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" th:field="*{email}" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Пароль</label>
+            <input type="password" class="form-control" id="password" th:field="*{password}">
+            <small class="form-text text-muted">Оставьте пустым, если не хотите менять пароль.</small>
+        </div>
+        <div class="mb-3">
+            <label for="age" class="form-label">Возраст</label>
+            <input type="number" class="form-control" id="age" th:field="*{age}" required>
+        </div>
+        <div class="mb-3">
+            <label for="roles" class="form-label">Роли</label>
+            <select multiple class="form-control" id="roles" th:field="*{allRoles}">
+                <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"
+                        th:selected="${userIter.allRoles.contains(role)}"></option>
+            </select>
+            <small class="form-text text-muted">Выберите роли для пользователя.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

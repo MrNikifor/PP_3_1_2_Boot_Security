@@ -8,9 +8,9 @@ import java.util.List;
 public interface RoleService {
     List<Role> getAllRoles();
 
-    List<Role> getRole(String roleName);
+    Role getRoleByName(String roleName);
 
-    List<Role> findAll();
+    Role findRoleById(int id);
 
-    List<Role> findAllById(List<Integer> ids);
+    boolean roleExists(int roleId);
 }

@@ -9,7 +9,7 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Bootstrap</a>
+        <a class="navbar-brand" href="#">Админка</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Переключить навигацию">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -35,6 +35,7 @@
             <th>Имя пользователя</th>
             <th>Email</th>
             <th>Возраст</th>
+            <th>Роли</th>
             <th>Действия</th>
         </tr>
         </thead>
@@ -45,8 +46,11 @@
             <td th:text="${user.email}"></td>
             <td th:text="${user.age}"></td>
             <td>
+                <span th:each="role : ${user.allRoles}" th:text="${role.name}"></span>
+            </td>
+            <td>
                 <a th:href="@{/users/edit/{id}(id=${user.id})}" class="btn btn-warning">Редактировать</a>
-                <form action="#" th:action="@{/admin/delete}" method="post" style="display:inline;">
+                <form action="#" th:action="@{/users/admin/delete}" method="post" style="display:inline;">
                     <input type="hidden" name="id" th:value="${user.id}" />
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Вы уверены, что хотите удалить этого пользователя?');">Удалить</button>
                 </form>
@@ -56,7 +60,7 @@
     </table>
 
     <h3>Добавить пользователя</h3>
-    <form action="#" th:action="@{/admin/add}" th:object="${newUser}" method="post">
+    <form action="#" th:action="@{/users/admin/add}" th:object="${newUser}" method="post">
         <div class="mb-3">
             <label for="username" class="form-label">Имя пользователя</label>
             <input type="text" class="form-control" id="username" th:field="*{username}" required>
@@ -72,6 +76,13 @@
         <div class="mb-3">
             <label for="age" class="form-label">Возраст</label>
             <input type="number" class="form-control" id="age" th:field="*{age}" required>
+        </div>
+        <div class="mb-3">
+            <label for="roles" class="form-label">Роли</label>
+            <select multiple class="form-control" id="roles" th:field="*{allRoles}">
+                <option th:each="role : ${roles}" th:value="${role.id}" th:text="${role.name}"></option>
+            </select>
+            <small class="form-text text-muted">Выберите роли для пользователя.</small>
         </div>
         <button type="submit" class="btn btn-primary">Добавить</button>
     </form>

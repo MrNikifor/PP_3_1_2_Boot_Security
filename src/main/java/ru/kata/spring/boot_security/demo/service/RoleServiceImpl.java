@@ -3,10 +3,10 @@ package ru.kata.spring.boot_security.demo.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.exeption.RoleNotFoundException;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -26,24 +26,20 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional
-    public List<Role> getRole(String roleName) {
-        Role role = roleRepository.findRoleByName(roleName);
-        if (role == null) {
-
-            return Collections.emptyList();
-        }
-        return Collections.singletonList(role);
+    public Role getRoleByName(String roleName) {
+        return roleRepository.findRoleByName(roleName);
     }
 
     @Override
     @Transactional
-    public List<Role> findAll() {
-        return roleRepository.findAll();
+    public Role findRoleById(int id) {
+        return roleRepository.findById(id)
+                .orElseThrow(() -> new RoleNotFoundException("Роль с ID " + id + " не найдена"));
     }
 
     @Override
     @Transactional
-    public List<Role> findAllById(List<Integer> ids) {
-        return roleRepository.findAllById(ids);
+    public boolean roleExists(int roleId) {
+        return roleRepository.existsById(roleId);
     }
 }
