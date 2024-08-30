@@ -47,7 +47,7 @@ public class ConfigUserService implements UserDetailsService {
                 true,
                 true,
                 true,
-                user.getAll_roles().stream()
+                user.getAllRoles().stream()
                         .map(role -> new SimpleGrantedAuthority(role.getName()))
                         .collect(Collectors.toList())
         );
