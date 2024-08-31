@@ -24,7 +24,6 @@ public class ConfigUserService implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
-    @EntityGraph(attributePaths = {"roles"})
     public User findByUsername(String username) {
         User user = userRepository.findByUsername(username);
         if (user == null) {
@@ -40,17 +39,7 @@ public class ConfigUserService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException(String.format("Пользователь '%s' не найден", username));
         }
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                user.isEnabled(),
-                true,
-                true,
-                true,
-                user.getAllRoles().stream()
-                        .map(role -> new SimpleGrantedAuthority(role.getName()))
-                        .collect(Collectors.toList())
-        );
+        return user;
     }
     /*@Override
     @Transactional

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.AdditionalService;
 import ru.kata.spring.boot_security.demo.service.RoleService;
@@ -18,8 +17,6 @@ import ru.kata.spring.boot_security.demo.validators.UserValidator;
 
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.HashSet;
-import java.util.Set;
 
 @Controller
 @RequestMapping("/users")
@@ -63,9 +60,16 @@ public class AdminController {
             return "editUser";
         }
 
+        if (userService.usernameExists(user.getUsername(), user.getId())) {
+            bindingResult.rejectValue("username", "error.userIter", "Пользователь с таким именем уже существует.");
+            model.addAttribute("roles", roleService.getAllRoles());
+            return "editUser";
+        }
+
         userService.updateUser(user);
         return "redirect:/users/admin";
     }
+
 
     @PostMapping("/admin/add")
     public String addUser(@ModelAttribute("newUser") @Valid User user, BindingResult bindingResult,
@@ -77,16 +81,6 @@ public class AdminController {
             model.addAttribute("activeTab", "addUser");
             model.addAttribute("roles", roleService.getAllRoles());
             return "adminPage";
-        }
-
-        if (user.getAllRoles() != null) {
-            Set<Role> validRoles = new HashSet<>();
-            for (Role role : user.getAllRoles()) {
-                if (roleService.roleExists(role.getId())) {
-                    validRoles.add(role);
-                }
-            }
-            user.setAllRoles(validRoles);
         }
 
         userService.saveUser(user);

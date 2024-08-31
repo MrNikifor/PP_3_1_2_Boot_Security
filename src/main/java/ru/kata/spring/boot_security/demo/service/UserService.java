@@ -18,4 +18,6 @@ public interface UserService {
     void updateUser(User user);
 
     void deleteById(int id);
+
+    boolean usernameExists(String username, Integer userId);
 }
