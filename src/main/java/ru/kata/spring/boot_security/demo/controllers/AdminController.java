@@ -40,7 +40,7 @@ public class AdminController {
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("roles", roleService.getAllRoles());
         model.addAttribute("activeTab", "usersTable");
-        return "adminPage";
+        return "admin-page";
     }
 
     @GetMapping("/edit/{id}")
@@ -48,7 +48,7 @@ public class AdminController {
         User user = userService.showUserById(id);
         model.addAttribute("userIter", user);
         model.addAttribute("roles", roleService.getAllRoles());
-        return "editUser";
+        return "edit-user";
     }
 
     @PostMapping("/admin/update")
@@ -57,19 +57,25 @@ public class AdminController {
                              Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("roles", roleService.getAllRoles());
-            return "editUser";
+            return "edit-user";
         }
 
         if (userService.usernameExists(user.getUsername(), user.getId())) {
             bindingResult.rejectValue("username", "error.userIter", "Пользователь с таким именем уже существует.");
             model.addAttribute("roles", roleService.getAllRoles());
-            return "editUser";
+            return "edit-user";
         }
 
         userService.updateUser(user);
         return "redirect:/users/admin";
     }
 
+    @GetMapping("/add-new")
+    public String showAddUserForm(Model model) {
+        model.addAttribute("newUser", new User());
+        model.addAttribute("roles", roleService.getAllRoles());
+        return "add-new-user";
+    }
 
     @PostMapping("/admin/add")
     public String addUser(@ModelAttribute("newUser") @Valid User user, BindingResult bindingResult,
@@ -80,7 +86,7 @@ public class AdminController {
             additionalService.createModelForView(model, principal);
             model.addAttribute("activeTab", "addUser");
             model.addAttribute("roles", roleService.getAllRoles());
-            return "adminPage";
+            return "add-new-user";
         }
 
         userService.saveUser(user);

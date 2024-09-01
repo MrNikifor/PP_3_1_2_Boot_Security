@@ -1,33 +1,15 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css">
     <title>Информация о пользователе</title>
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .info-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">Ваше приложение</a>
-    </div>
-</nav>
-
 <div class="container mt-4">
+    <h2 class="mb-4">Информация о пользователе</h2>
     <div class="info-container">
-        <h2 class="mb-4">Информация о пользователе</h2>
         <p><strong>Имя пользователя:</strong> <span th:text="${user.username}"></span></p>
         <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
         <p><strong>Возраст:</strong> <span th:text="${user.age}"></span></p>
