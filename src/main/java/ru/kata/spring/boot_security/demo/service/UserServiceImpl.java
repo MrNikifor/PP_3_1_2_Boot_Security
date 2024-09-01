@@ -77,6 +77,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + user.getId() + " не найден"));
 
         existingUser.setUsername(user.getUsername());
+        existingUser.setAge(user.getAge());
 
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
