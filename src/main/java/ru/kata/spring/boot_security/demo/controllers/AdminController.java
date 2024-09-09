@@ -3,21 +3,17 @@ package ru.kata.spring.boot_security.demo.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.exeption.UserNotFoundException;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.AdditionalService;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 import ru.kata.spring.boot_security.demo.validators.UserValidator;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -34,13 +30,13 @@ public class AdminController {
         this.roleService = roleService;
     }
 
-    @GetMapping("/users")
+    @GetMapping("/admin")
     public ResponseEntity<List<User>> showAllUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/admin/{id}")
     public ResponseEntity<User> getUserById(@PathVariable("id") int id) {
         User user = userService.showUserById(id);
         if (user == null) {
@@ -50,7 +46,7 @@ public class AdminController {
     }
 
 
-    @PutMapping("/users")
+    @PutMapping("/admin")
     public ResponseEntity<User> updateUserByUsername(@RequestParam("username") String username, @RequestBody @Valid User user, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(null);
@@ -79,8 +75,7 @@ public class AdminController {
     }
 
 
-
-    @PostMapping("/users")
+    @PostMapping("/admin")
     public ResponseEntity<User> addUser(@RequestBody @Valid User user, BindingResult bindingResult) {
         userValidator.validate(user, bindingResult);
 
@@ -93,7 +88,7 @@ public class AdminController {
     }
 
 
-    @DeleteMapping("/users/{id}")
+    @DeleteMapping("/admin/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") int id) {
 
         if (id <= 0) {
@@ -104,7 +99,7 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/users/roles")
+    @GetMapping("/admin/roles")
     public ResponseEntity<List<Role>> getAllRoles() {
         List<Role> roles = roleService.getAllRoles();
         return ResponseEntity.ok(roles);
