@@ -1,5 +1,7 @@
 package ru.kata.spring.boot_security.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.CascadeType;
@@ -24,7 +26,7 @@ public class Role implements GrantedAuthority {
 
     @Column(name = "role_name")
     private String name;
-
+    @JsonBackReference
     @ManyToMany(mappedBy = "allRoles", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private Set<User> allUsers = new HashSet<>();
 

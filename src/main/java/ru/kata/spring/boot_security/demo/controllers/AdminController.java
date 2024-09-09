@@ -1,14 +1,14 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import ru.kata.spring.boot_security.demo.exeption.UserNotFoundException;
+import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.AdditionalService;
 import ru.kata.spring.boot_security.demo.service.RoleService;
@@ -16,9 +16,104 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 import ru.kata.spring.boot_security.demo.validators.UserValidator;
 
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import java.security.Principal;
+import java.util.List;
 
-@Controller
+@RestController
+@RequestMapping("/api")
+public class AdminController {
+    private final UserService userService;
+    private final UserValidator userValidator;
+    private final RoleService roleService;
+
+    @Autowired
+    public AdminController(UserService userService, UserValidator userValidator, RoleService roleService) {
+        this.userService = userService;
+        this.userValidator = userValidator;
+        this.roleService = roleService;
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> showAllUsers() {
+        List<User> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable("id") int id) {
+        User user = userService.showUserById(id);
+        if (user == null) {
+            throw new UserNotFoundException("Пользователь с ID " + id + " не найден!");
+        }
+        return ResponseEntity.ok(user);
+    }
+
+
+    @PutMapping("/users")
+    public ResponseEntity<User> updateUserByUsername(@RequestParam("username") String username, @RequestBody @Valid User user, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+
+        User existingUser = userService.findByUsername(username);
+        if (existingUser == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (userService.usernameExists(user.getUsername(), existingUser.getId())) {
+            throw new ValidationException("Имя пользователя уже существует");
+        }
+
+
+        existingUser.setUsername(user.getUsername());
+        existingUser.setEmail(user.getEmail());
+        existingUser.setPassword(user.getPassword());
+        existingUser.setAge(user.getAge());
+        existingUser.setAllRoles(user.getAllRoles());
+
+        userService.updateUser(existingUser);
+
+        return ResponseEntity.ok(existingUser);
+    }
+
+
+
+    @PostMapping("/users")
+    public ResponseEntity<User> addUser(@RequestBody @Valid User user, BindingResult bindingResult) {
+        userValidator.validate(user, bindingResult);
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        userService.saveUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    }
+
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") int id) {
+
+        if (id <= 0) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        userService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/users/roles")
+    public ResponseEntity<List<Role>> getAllRoles() {
+        List<Role> roles = roleService.getAllRoles();
+        return ResponseEntity.ok(roles);
+    }
+}
+
+
+
+/*@Controller
 @RequestMapping("/users")
 public class AdminController {
     private final UserService userService;
@@ -100,4 +195,4 @@ public class AdminController {
         }
         return "redirect:/users/admin";
     }
-}
+}*/

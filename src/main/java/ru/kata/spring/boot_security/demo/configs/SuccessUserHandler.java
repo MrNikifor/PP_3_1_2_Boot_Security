@@ -13,14 +13,16 @@ import java.util.Set;
 @Component
 public class SuccessUserHandler implements AuthenticationSuccessHandler {
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) throws IOException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
-        if (roles.contains("ROLE_USER")) {
-            httpServletResponse.sendRedirect("/users/user");
-        } else if (roles.contains("ROLE_ADMIN")) {
-            httpServletResponse.sendRedirect("/users/admin");
+
+        // Проверяем роли пользователя и перенаправляем на соответствующую страницу
+        if (roles.contains("ROLE_ADMIN")) {
+            response.sendRedirect("/adminPage"); // Перенаправление на страницу администратора
+        } else if (roles.contains("ROLE_USER")) {
+            response.sendRedirect("/user"); // Перенаправление на страницу добавления нового пользователя
         } else {
-            httpServletResponse.sendRedirect("/login");
+            response.sendRedirect("/login"); // Перенаправление на страницу входа
         }
     }
 }

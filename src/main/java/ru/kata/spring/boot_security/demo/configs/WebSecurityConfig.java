@@ -9,7 +9,12 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import ru.kata.spring.boot_security.demo.service.ConfigUserService;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -25,12 +30,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
+        http.cors().and() // Добавьте эту строку
                 .authenticationProvider(daoAuthenticationProvider())
                 .authorizeRequests()
-                .antMatchers("/login", "/error").permitAll()
-                .antMatchers("/users/admin/**").hasRole("ADMIN")
-                .antMatchers("/users/user/**").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/login").permitAll()
+                .antMatchers("/static/**").permitAll()
+                .antMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+                .antMatchers("/adminPage").hasRole("ADMIN")
+                .antMatchers("/api/users/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin().successHandler(successUserHandler)
@@ -39,6 +46,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .logout()
                 .permitAll();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -52,5 +60,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         authenticationProvider.setUserDetailsService(configService);
         return authenticationProvider;
     }
-
 }

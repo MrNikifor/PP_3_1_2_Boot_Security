@@ -1,6 +1,8 @@
 package ru.kata.spring.boot_security.demo.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,7 +30,7 @@ public class User implements UserDetails {
     @Column(name = "user_id")
     private int id;
 
-    @Column(name = "username",unique = true)
+    @Column(name = "username", unique = true)
     private String username;
 
     @Column(name = "email")
@@ -38,9 +40,10 @@ public class User implements UserDetails {
     private String password;
 
     @Column(name = "age")
-    @Min(value = 12, message = "Возраст не должен быть менее 12")
+    @Min(value = 16, message = "Возраст не должен быть менее 12")
     private int age;
 
+    @JsonManagedReference
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_role_id",
             joinColumns = @JoinColumn(name = "user_id"),
