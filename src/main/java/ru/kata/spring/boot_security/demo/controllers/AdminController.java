@@ -5,9 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import ru.kata.spring.boot_security.demo.dto.UserDto;
 import ru.kata.spring.boot_security.demo.exeption.UserNotFoundException;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
+import ru.kata.spring.boot_security.demo.service.DtoConverter;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 import ru.kata.spring.boot_security.demo.validators.UserValidator;
@@ -15,6 +17,7 @@ import ru.kata.spring.boot_security.demo.validators.UserValidator;
 import javax.validation.Valid;
 import javax.validation.ValidationException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -22,19 +25,30 @@ public class AdminController {
     private final UserService userService;
     private final UserValidator userValidator;
     private final RoleService roleService;
+    private final DtoConverter dtoConverter;
 
     @Autowired
-    public AdminController(UserService userService, UserValidator userValidator, RoleService roleService) {
+    public AdminController(UserService userService, UserValidator userValidator, RoleService roleService, DtoConverter dtoConverter) {
         this.userService = userService;
         this.userValidator = userValidator;
         this.roleService = roleService;
+        this.dtoConverter = dtoConverter;
     }
 
     @GetMapping("/admin")
-    public ResponseEntity<List<User>> showAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    public ResponseEntity<List<UserDto>> showAllUsers() {
+        try {
+            List<User> users = userService.getAllUsers();
+            List<UserDto> userDtos = users.stream()
+                    .map(dtoConverter::convertToDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(userDtos);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
+
 
     @GetMapping("/admin/{id}")
     public ResponseEntity<User> getUserById(@PathVariable("id") int id) {

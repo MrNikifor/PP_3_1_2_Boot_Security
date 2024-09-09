@@ -3,16 +3,16 @@ package ru.kata.spring.boot_security.demo.controllers;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-@Controller
-public class ViewController {
+    @Controller
+    public class ViewController {
 
-    @GetMapping("/adminPage")
-    public String showAdminPage() {
-        return "adminPage";
-    }
+        @GetMapping("/adminPage")
+        public String showAdminPage() {
+            return "adminPage";
+        }
 
-    @GetMapping("/user")
-    public String showUserPage(){
-        return "userInfo";
+        @GetMapping("/user")
+        public String showUserPage(){
+            return "userInfo";
+        }
     }
-}
