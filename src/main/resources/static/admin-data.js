@@ -110,13 +110,10 @@ async function fillModal(modal) {
         const user = await getUserDataById(userId);
         const modalBody = modal.querySelector(".modal-content");
         const idInput = modalBody.querySelector("input[data-user-id='id']");
-        const lastnameInput = modalBody.querySelector("input[data-user-id='lastName']");
         const ageInput = modalBody.querySelector("input[data-user-id='age']");
         const emailInput = modalBody.querySelector("input[data-user-id='email']");
         idInput.value = user.id;
         usernameInput.value = user.username;
-        nameInput.value = user.firstName;
-        lastnameInput.value = user.lastName;
         ageInput.value = user.age;
         emailInput.value = user.email;
         const rolesSelect = modalBody.querySelector("select[data-user-id='roles']");
