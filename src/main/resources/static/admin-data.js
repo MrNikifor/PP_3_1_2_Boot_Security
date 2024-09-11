@@ -14,23 +14,17 @@ async function dataAboutAllRoles() {
 }
 
 async function createNewUser(user) {
-    return await fetch("/api/users", {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(user)
-    });
+    return await fetch("/api/admin",
+        {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(user)})
 }
 
-async function deleteUserData(userId) {
+async function deleteUserData(userId){
     return await fetch(`/api/admin/${userId}`, {method: 'DELETE'});
 }
 
 async function editUserData(user) {
-    return await fetch("/api/admin", {
-        method: "PUT",
-        headers: {'Content-type': 'application/json'},
-        body: JSON.stringify(user)
-    });
+    return await fetch("/api/admin" ,
+        {method:"PUT", headers: {'Content-type': 'application/json'}, body: JSON.stringify(user)} )
 }
 
 async function addNewUserForm() {
@@ -38,7 +32,7 @@ async function addNewUserForm() {
     newUserForm.addEventListener('submit', async function (event) {
         event.preventDefault();
         document.getElementById("newUserError").innerHTML = "";
-        const rolesSelected = newUserForm.querySelector("#roles");
+        const rolesSelected  = newUserForm.querySelector("#roles");
         let roles = [];
         for (let option of rolesSelected.selectedOptions) {
             roles.push({id: Number(option.dataset.roleId), name: option.value});
@@ -53,6 +47,7 @@ async function addNewUserForm() {
         let response = await createNewUser(newUserData);
         if (response.ok) {
             newUserForm.reset();
+            document.querySelector('#users-tab').click();
             allUsersData = await dataAboutAllUsers();
             await fillTableOfAllUsers();
         } else {
@@ -79,7 +74,7 @@ async function fillAllRoles() {
 }
 
 async function fillTableOfAllUsers() {
-    const usersTable = document.getElementById("usersTableId");
+    const usersTable = document.getElementById("usersTable");
     const users = allUsersData;
     let usersTableHTML = "";
     for (let user of users) {
@@ -115,11 +110,13 @@ async function fillModal(modal) {
         const user = await getUserDataById(userId);
         const modalBody = modal.querySelector(".modal-content");
         const idInput = modalBody.querySelector("input[data-user-id='id']");
-        const usernameInput = modalBody.querySelector("input[data-user-id='username']");
+        const lastnameInput = modalBody.querySelector("input[data-user-id='lastName']");
         const ageInput = modalBody.querySelector("input[data-user-id='age']");
         const emailInput = modalBody.querySelector("input[data-user-id='email']");
         idInput.value = user.id;
         usernameInput.value = user.username;
+        nameInput.value = user.firstName;
+        lastnameInput.value = user.lastName;
         ageInput.value = user.age;
         emailInput.value = user.email;
         const rolesSelect = modalBody.querySelector("select[data-user-id='roles']");
@@ -135,29 +132,33 @@ async function fillModal(modal) {
             }
             rolesSelect.appendChild(option);
         }
-    });
+        const errors = modalBody.querySelector("div[data-user-id='modalErrors']");
+        errors.innerHTML = "";
+    })
 }
 
 async function deleteUserSubmit() {
     const modalDelete = document.getElementById("modalBodyDelete");
     modalDelete.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        const userId = event.target.querySelector("#idDelete").value;
-        let response = await deleteUserData(userId);
-        if (response.ok) {
-            if (userId == currentUserData.id) {
-                window.location.href = "http://localhost:8081/logout";
+            event.preventDefault();
+            const userId = event.target.querySelector("#idDelete").value;
+            let response = await deleteUserData(userId);
+            if (response.ok) {
+                if(userId == currentUserData.id) {
+                    window.location.href = "http://localhost:8081/logout";
+                } else {
+                    allUsersData = await dataAboutAllUsers();
+                    await fillTableOfAllUsers();
+                    document.getElementById("modalDeleteClose").click();
+                }
             } else {
-                allUsersData = await dataAboutAllUsers();
-                await fillTableOfAllUsers();
-            }
-        } else {
-            let list = await response.json();
-            for (let error of list) {
-                document.getElementById("editUserError").innerHTML += error + "<br>";
+                let list = await response.json();
+                for (let error of list) {
+                    document.getElementById("editUserError").innerHTML += error + "<br>";
+                }
             }
         }
-    });
+    )
 }
 
 async function editUserSubmit() {
@@ -165,7 +166,7 @@ async function editUserSubmit() {
     modalEdit.addEventListener('submit', async function (event) {
         event.preventDefault();
         document.getElementById("editUserError").innerHTML = "";
-        const rolesSelected = modalEdit.querySelector("#rolesEdit");
+        const rolesSelected  = modalEdit.querySelector("#rolesEdit");
         let roles = [];
         for (let option of rolesSelected.selectedOptions) {
             roles.push({id: Number(option.dataset.roleId), name: option.value});
@@ -180,9 +181,9 @@ async function editUserSubmit() {
         };
         let response = await editUserData(user);
         if (response.ok) {
-            if (user.id == currentUserData.id) {
-                if (user.username != currentUserData.username) {
-                    window.location.href = "http://localhost:8081/logout";
+            if(user.id == currentUserData.id) {
+                if(user.username != currentUserData.username) {
+                    window.location.href = "http://localhost:8080/logout";
                 }
                 currentUserData = await dataAboutCurrentUser();
                 await showUserOnNavbar();

@@ -3,21 +3,20 @@ package ru.kata.spring.boot_security.demo.service;
 
 import ru.kata.spring.boot_security.demo.model.User;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 
 public interface UserService {
+    User findById(Long id);
+
     User findByUsername(String username);
 
-    void saveUser(User user);
+    void create(User user);
 
-    User showUserById(int id);
+    void update(User user);
 
-    List<User> getAllUsers();
+    List<User> findAll();
 
-    void updateUser(User user);
-
-    void deleteById(int id);
-
-    boolean usernameExists(String username, Integer userId);
+    void deleteById(Long id) throws EntityNotFoundException;
 }

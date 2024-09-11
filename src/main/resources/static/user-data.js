@@ -1,9 +1,9 @@
 async function dataAboutCurrentUser() {
-    const response = await fetch("/api/user");
+    const response = await fetch("/api/user")
     return await response.json();
 }
 
-async function fillTableAboutCurrentUser() {
+async function fillTableAboutCurrentUser(){
     const currentUserTable = document.getElementById("currentUserTable");
     const currentUser = currentUserData;
 
@@ -15,6 +15,6 @@ async function fillTableAboutCurrentUser() {
             <td>${currentUser.age}</td>
             <td>${currentUser.email}</td>
             <td>${currentUser.roles.map(role => role.name.replace('ROLE_', '')).join(' ')}</td>
-        </tr>`;
+        </tr>`
     currentUserTable.innerHTML = currentUserTableHTML;
 }

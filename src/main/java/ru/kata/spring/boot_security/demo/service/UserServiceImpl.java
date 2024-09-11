@@ -4,102 +4,102 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.exeption.UserNotFoundException;
-import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import javax.persistence.EntityNotFoundException;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validator;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
+    private final Validator validator;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, RoleService roleService, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, Validator validator) {
         this.userRepository = userRepository;
-        this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
+        this.validator = validator;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
     @Override
     @Transactional(readOnly = true)
     public User findByUsername(String username) {
-        return Optional.ofNullable(userRepository.findByUsername(username))
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с именем " + username + " не найден"));
+        Optional<User> user = userRepository.findByUsername(username);
+        return user.orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
     @Override
-    public void saveUser(User user) {
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
+    @Transactional
+    public void create(User user) {
+        validateUser(user, true);
+        user.setPassword(passwordEncoder.encode(user.getRawPassword()));
+        userRepository.save(user);
+    }
 
-        if (user.getAllRoles() != null) {
-            Set<Role> validRoles = new HashSet<>();
-            for (Role role : user.getAllRoles()) {
-                if (roleService.roleExists(role.getId())) {
-                    validRoles.add(role);
-                }
-            }
-            user.setAllRoles(validRoles);
+    @Override
+    @Transactional
+    public void update(User user) {
+        validateUser(user, false);
+        if (!user.getRawPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(user.getRawPassword()));
+        } else {
+            user.setPassword(findById(user.getId()).getPassword());
         }
         userRepository.save(user);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public User showUserById(int id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
+    public List<User> findAll() {
+        return new HashSet<User>(userRepository.findAll()).stream().toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    public boolean usernameExists(String username, Integer userId) {
-        User existingUser = userRepository.findByUsername(username);
-        return existingUser != null && (userId == null || existingUser.getId() != userId);
-    }
-
-    @Override
-    public void updateUser(User user) {
-        User existingUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + user.getId() + " не найден"));
-
-        existingUser.setUsername(user.getUsername());
-        existingUser.setAge(user.getAge());
-
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+    @Transactional
+    public void deleteById(Long id) throws EntityNotFoundException {
+        if (!userRepository.existsById(id)) {
+            throw new EntityNotFoundException("User not found");
         }
+        userRepository.deleteById(id);
+    }
 
-        if (user.getAllRoles() != null) {
-            existingUser.setAllRoles(user.getAllRoles());
+    public void validateUser(User user, boolean isNew) {
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        StringBuilder sb = new StringBuilder();
+        if (isNew && user.getRawPassword().isEmpty()) {
+            sb.append("User password must not be empty");
+            sb.append("; ");
         }
-
-        userRepository.save(existingUser);
+        if (isNew || (!Objects.equals(user.getUsername(), userRepository.findById(user.getId()).get().getUsername()))) {
+            if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+                sb.append("User with this username already exists");
+                sb.append("; ");
+            }
+        }
+        if (user.getRoles().isEmpty()) {
+            sb.append("User roles must not be empty");
+            sb.append("; ");
+        }
+        if (!violations.isEmpty()) {
+            for (ConstraintViolation<User> constraintViolation : violations) {
+                sb.append(constraintViolation.getMessage());
+                sb.append("; ");
+            }
+        }
+        if (!sb.isEmpty()) {
+            throw new ConstraintViolationException(sb.toString(), violations);
+        }
     }
-
-
-    @Override
-    public void deleteById(int id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
-
-        // Логирование удаления пользователя
-        System.out.println("Удаление пользователя: " + user);
-
-        userRepository.delete(user);
-    }
-
 }

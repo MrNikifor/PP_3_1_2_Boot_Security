@@ -1,7 +1,6 @@
 let currentUserData;
 let allUsersData;
 let rolesData;
-
 document.addEventListener('DOMContentLoaded', async function () {
     currentUserData = await dataAboutCurrentUser();
     allUsersData = await dataAboutAllUsers();

@@ -1,37 +1,29 @@
 package ru.kata.spring.boot_security.demo.dto;
 
 import ru.kata.spring.boot_security.demo.model.Role;
-import ru.kata.spring.boot_security.demo.model.User;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class UserDto {
-    private int id;
+    private Long id;
+
     private String username;
-    private String email;
+
+    private String firstName;
+
+    private String lastName;
+
     private int age;
-    private List<String> roles; // Список имен ролей
 
-    // Конструктор по умолчанию
-    public UserDto() {
-    }
+    private String email;
 
-    // Конструктор с параметрами
-    public UserDto(int id, String username, String email, int age, List<String> roles) {
-        this.id = id;
-        this.username = username;
-        this.email = email;
-        this.age = age;
-        this.roles = roles;
-    }
+    private List<Role> roles;
 
-    // Геттеры и сеттеры
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -43,12 +35,20 @@ public class UserDto {
         this.username = username;
     }
 
-    public String getEmail() {
-        return email;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public int getAge() {
@@ -59,20 +59,19 @@ public class UserDto {
         this.age = age;
     }
 
-    public List<String> getRoles() {
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public List<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<String> roles) {
+    public void setRoles(List<Role> roles) {
         this.roles = roles;
     }
-
-    // Метод для преобразования User в UserDto
-    public static UserDto fromUser(User user) {
-        List<String> roleNames = user.getAllRoles().stream()
-                .map(Role::getName) // Получаем имена ролей
-                .collect(Collectors.toList());
-        return new UserDto(user.getId(), user.getUsername(), user.getEmail(), user.getAge(), roleNames);
-    }
 }
-

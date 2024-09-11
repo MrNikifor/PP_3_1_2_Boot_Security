@@ -12,17 +12,20 @@ import java.util.Set;
 
 @Component
 public class SuccessUserHandler implements AuthenticationSuccessHandler {
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
 
-        // Проверяем роли пользователя и перенаправляем на соответствующую страницу
+        String username = authentication.getName();
+        System.out.println("Пользователь " + username + " успешно аутентифицирован с ролями: " + roles);
+
         if (roles.contains("ROLE_ADMIN")) {
-            response.sendRedirect("/adminPage"); // Перенаправление на страницу администратора
+            response.sendRedirect("/admin");
         } else if (roles.contains("ROLE_USER")) {
-            response.sendRedirect("/user"); // Перенаправление на страницу добавления нового пользователя
+            response.sendRedirect("/user");
         } else {
-            response.sendRedirect("/login"); // Перенаправление на страницу входа
+            response.sendRedirect("/");
         }
     }
 }
