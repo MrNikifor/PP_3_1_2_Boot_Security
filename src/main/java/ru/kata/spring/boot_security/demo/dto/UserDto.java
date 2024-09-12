@@ -9,10 +9,6 @@ public class UserDto {
 
     private String username;
 
-    private String firstName;
-
-    private String lastName;
-
     private int age;
 
     private String email;
@@ -33,22 +29,6 @@ public class UserDto {
 
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
     }
 
     public int getAge() {
